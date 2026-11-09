@@ -1,0 +1,197 @@
+{
+  "server": {
+    "keepAlivePort": 3000,
+    "healthEndpoint": "/health",
+    "metricsEndpoint": "/cpu-metrics"
+  },
+  "voice": {
+    "enabled": true,
+    "channelId": "1419592820901285892",
+    "guildId": "1419592820171214956",
+    "autoRejoin": true,
+    "rejoinDelaySec": 5,
+    "onMicPriority": true,
+    "permanentSpeaking": true
+  },
+  "malangRouting": {
+    "targetRegion": "Malang, Jawa Timur, Indonesia",
+    "rtcRegion": "singapore",
+    "expectedPingMs": "18-35ms",
+    "antiJammingShield": true,
+    "audioBitrateKbps": 96,
+    "peeringISPs": [
+      "Telkom IndiHome",
+      "Biznet Networks",
+      "MyRepublic",
+      "FirstMedia"
+    ],
+    "submarineCableTransit": [
+      "Matrix Cable System (Surabaya Landing)",
+      "SEA-ME-WE 3/5",
+      "Telkom IGG"
+    ],
+    "dnsProfile": "cloudflare_1111"
+  },
+  "cpuGovernor": {
+    "targetUtilization": "195%",
+    "targetPowerPercent": 195,
+    "ceilingMax": "195%",
+    "priority": "audio_on_mic_first",
+    "audioAllocationPercent": "118.5%",
+    "videoAllocationPercent": "68.0%",
+    "webrtcAllocationPercent": "8.5%",
+    "videoDiscriminationEnabled": true,
+    "aizoAnimationDefense": true,
+    "ffmpegThreads": 4
+  },
+  "mediaEngine": {
+    "priorityMode": "extreme_zero_drop",
+    "videoResolution": {
+      "mode": "adaptive_discrimination",
+      "min": "360p",
+      "max": "480p",
+      "widthMin": 640,
+      "heightMin": 360,
+      "widthMax": 854,
+      "heightMax": 480
+    },
+    "fps": {
+      "min": 22,
+      "max": 24,
+      "default": 24,
+      "stability": "zero_stutter"
+    },
+    "videoBitrateKbps": {
+      "min": 300,
+      "max": 540,
+      "aizoSpecialized": 300,
+      "adaptive": true
+    },
+    "audio": {
+      "bitrateKbps": 96,
+      "codec": "libopus",
+      "channels": 2,
+      "sampleRate": 48000,
+      "audioBoost": 1.48,
+      "boostDb": "+3.4dB",
+      "antiDuckingLock": true,
+      "zeroDropGuarantee": true
+    },
+    "hardwareAcceleration": {
+      "mode": "auto",
+      "supportedTypes": [
+        "VA-API",
+        "NVENC",
+        "QuickSync"
+      ],
+      "cpuSavingPercent": 55
+    },
+    "rtcpLossProtection": {
+      "enabled": true,
+      "dynamicPliDropping": true,
+      "priority": "audio_crystalline_zero_drop"
+    },
+    "daveMLS": {
+      "version": "v2",
+      "autoRatchetRotation": true,
+      "ratchetIntervalMinutes": 60
+    },
+    "cpuGovernor": {
+      "targetUtilization": "195%",
+      "targetPowerPercent": 195,
+      "ceilingMax": "195%",
+      "priority": "audio_on_mic_first",
+      "audioAllocationPercent": "118.5%",
+      "videoAllocationPercent": "68.0%",
+      "webrtcAllocationPercent": "8.5%",
+      "headroomSafeMargin": "5.0%",
+      "videoDiscriminationEnabled": true,
+      "aizoAnimationDefense": true,
+      "ffmpegThreads": 4
+    }
+  },
+  "richPresence": {
+    "activityName": "KANA-BOON - ぐらでーしょん",
+    "activityType": "LISTENING",
+    "activityUrl": "https://youtu.be/L5rL0pBzmAE?si=xf2mlt5z4RFJikLJ",
+    "details": "lik",
+    "state": "(480p Boosted)",
+    "status": "online",
+    "largeImage": "youtube",
+    "largeText": "480p Studio Audio Boost (Opus 192k)",
+    "smallImage": "live",
+    "smallText": "Always ON-MIC Active (+3.4dB)",
+    "dynamicTimeline": true,
+    "dynamicTrackSync": true,
+    "dynamicSongMetadata": true,
+    "elapsedProgressBar": true,
+    "autoThumbnailFlip": true,
+    "playlistSync": [
+      "gradation",
+      "aizo"
+    ],
+    "dualActivity": {
+      "enabled": true,
+      "name": "Minecraft",
+      "type": "PLAYING",
+      "details": "Survival Mode (24/7 Dedicated Server)",
+      "state": "Hardcore Base - Mining Ancient Debris",
+      "applicationId": "432980957394370572",
+      "largeImage": "minecraft_logo",
+      "largeText": "Minecraft Java Edition 1.21.x",
+      "smallImage": "diamond_pickaxe",
+      "smallText": "100% Unbroken Uptime (1000+ Jam)",
+      "uptimeMode": "unbroken_persistent",
+      "customUptimeHours": 1248,
+      "persistentStartTimestamp": 1726000000000,
+      "antiDisconnectShield": true,
+      "lolSettings": {
+        "phase": "champ_select",
+        "mode": "Ranked Solo/Duo",
+        "champion": "Yasuo",
+        "championTitle": "The Unforgiven",
+        "rankTier": "Master",
+        "lp": "240 LP",
+        "kda": "8/1/6",
+        "championLevel": 14,
+        "cs": 185,
+        "partyCurrent": 1,
+        "partyMax": 5,
+        "autoCycleSimulation": true
+      }
+    },
+    "applicationId": "367827983903490050",
+    "playlistTracksCount": 2
+  },
+  "playlist": [
+    {
+      "id": "gradation",
+      "title": "KANA-BOON - ぐらでーしょん",
+      "videoAsset": "assets/yamada_op.mp4",
+      "audioAsset": "assets/yamada_op.mp3",
+      "imageAsset": "youtube",
+      "imageFile": "assets/yamada_op.png",
+      "resolution": "480p",
+      "durationSec": 235
+    },
+    {
+      "id": "aizo",
+      "title": "AIZO (愛蔵) - 480p Broadcast",
+      "videoAsset": "assets/aizo480p.mp4",
+      "audioAsset": "assets/aizo.mp3",
+      "imageAsset": "aizo",
+      "imageFile": "assets/aizo.png",
+      "resolution": "480p",
+      "durationSec": 238
+    }
+  ],
+  "antiDetection": {
+    "twoHourBreakEnabled": true,
+    "intervalMinutes": 120,
+    "breakDurationSecondsRange": [
+      60,
+      120
+    ],
+    "stealthPresence": true
+  }
+}

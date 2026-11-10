@@ -1,0 +1,6 @@
+{
+  "name": "Fadhilbot - Discord 24/7 Stream & Audio Engine Studio",
+  "description": "Studio Audit, Optimasi Latensi Malang (Jawa Timur), dan Engine Discord 24/7 Audio-Priority & 480p Adaptive Stream dengan sinkronisasi kode sumber terkini dan proteksi Voice WebRTC.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

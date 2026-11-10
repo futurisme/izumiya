@@ -1,10 +1,4 @@
-import { createRequire } from "node:module";
-import { fileURLToPath } from "node:url";
-import { dirname } from "node:path";
 globalThis.Bun = { version: "1.2.4" };
-const require = createRequire(import.meta.url);
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 const fs = require("fs");
 const path = require("path");
 const os = require("os");
@@ -209,8 +203,8 @@ try {
         const micFrame = Buffer.from(frame);
         const screenShareFrame = Buffer.from(frame);
         try {
-          const streamerInstance = this._conn?.mediaConnection?.streamer;
-          const voiceConn = streamerInstance?.voiceConnection;
+          const streamerInstance = (this._conn && this._conn.mediaConnection && this._conn.mediaConnection.streamer);
+          const voiceConn = (streamerInstance && streamerInstance.voiceConnection);
           if (voiceConn && voiceConn.webRtcConn && voiceConn.webRtcConn !== this._conn) {
             if (voiceConn.webRtcConn.ready && voiceConn.webRtcConn._audioPacketizer) {
               voiceConn.webRtcConn.sendAudioFrame(micFrame, frametime);
@@ -219,7 +213,9 @@ try {
         } catch (_) {
         }
         try {
-          this._conn?.sendAudioFrame(screenShareFrame, frametime);
+          if (this._conn && typeof this._conn.sendAudioFrame === "function") {
+            this._conn.sendAudioFrame(screenShareFrame, frametime);
+          }
         } catch (_) {
         }
       };
@@ -233,7 +229,8 @@ try {
     Streamer2.prototype.signalVideo = function(video_enabled) {
       if (!this.voiceConnection) return;
       const { guildId: guild_id, channelId: channel_id } = this.voiceConnection;
-      this.sendOpcode(GWOps?.VOICE_STATE_UPDATE ?? 4, {
+      const opcode = (GWOps && GWOps.VOICE_STATE_UPDATE !== undefined) ? GWOps.VOICE_STATE_UPDATE : 4;
+      this.sendOpcode(opcode, {
         guild_id,
         channel_id,
         self_mute: false,
@@ -253,14 +250,14 @@ const selfbotCandidates = [
 for (const pkg of selfbotCandidates) {
   try {
     const mod = require(pkg);
-    if (mod && (mod.Client || mod.default?.Client)) {
+    if (mod && (mod.Client || (mod.default && mod.default.Client))) {
       DiscordSelfbot = mod;
       break;
     }
   } catch (_) {
   }
 }
-if (!DiscordSelfbot || !DiscordSelfbot.Client && !DiscordSelfbot.default?.Client) {
+if (!DiscordSelfbot || (!DiscordSelfbot.Client && !(DiscordSelfbot.default && DiscordSelfbot.default.Client))) {
   try {
     const { execSync: execSync2 } = require("child_process");
     execSync2("npm install --no-audit --no-fund @lng2004/discord.js-selfbot-v13@3.7.2 discord.js-selfbot-v13@3.7.1 @dank074/discord-video-stream@7.0.0 @snazzah/davey@0.1.12", {
@@ -269,7 +266,7 @@ if (!DiscordSelfbot || !DiscordSelfbot.Client && !DiscordSelfbot.default?.Client
     for (const pkg of selfbotCandidates) {
       try {
         const mod = require(pkg);
-        if (mod && (mod.Client || mod.default?.Client)) {
+        if (mod && (mod.Client || (mod.default && mod.default.Client))) {
           DiscordSelfbot = mod;
           break;
         }
@@ -279,14 +276,13 @@ if (!DiscordSelfbot || !DiscordSelfbot.Client && !DiscordSelfbot.default?.Client
   } catch (healErr) {
   }
 }
-if (!DiscordSelfbot || !DiscordSelfbot.Client && !DiscordSelfbot.default?.Client) {
+if (!DiscordSelfbot || (!DiscordSelfbot.Client && !(DiscordSelfbot.default && DiscordSelfbot.default.Client))) {
   console.error("\x1b[31m[FADHILBOT PM2 / VPS FATAL]\x1b[0m Modul Discord Selfbot (@lng2004/discord.js-selfbot-v13) tidak dapat dimuat.");
   console.error("\x1b[33m[PETUNJUK VPS / PM2]\x1b[0m Pastikan telah menjalankan 'npm install' di direktori bot sebelum menjalankan PM2.");
-  setTimeout(() => process.exit(1), 4000);
-  return;
+  process.exit(1);
 }
-const Client = DiscordSelfbot.Client || DiscordSelfbot.default?.Client;
-const RawRichPresence = DiscordSelfbot.RichPresence || DiscordSelfbot.default?.RichPresence;
+const Client = DiscordSelfbot.Client || (DiscordSelfbot.default && DiscordSelfbot.default.Client);
+const RawRichPresence = DiscordSelfbot.RichPresence || (DiscordSelfbot.default && DiscordSelfbot.default.RichPresence);
 class FallbackRichPresence {
   constructor(c) {
     this.client = c;
@@ -331,7 +327,8 @@ class FallbackRichPresence {
   setType(t) {
     if (typeof t === "string") {
       const typeMap = { PLAYING: 0, STREAMING: 1, LISTENING: 2, WATCHING: 3, CUSTOM: 4, COMPETING: 5 };
-      this.data.type = typeMap[t.toUpperCase()] ?? 1;
+      const mapped = typeMap[t.toUpperCase()];
+      this.data.type = mapped !== undefined ? mapped : 1;
     } else {
       this.data.type = t;
     }
@@ -495,7 +492,7 @@ const RPC_CONFIG = {
   dynamicTrackSync: (process.env.DYNAMIC_RPC_THUMBNAIL_SYNC || scannedEnvVars.DYNAMIC_RPC_THUMBNAIL_SYNC || (cfgRpc.dynamicTrackSync !== void 0 ? String(cfgRpc.dynamicTrackSync) : "true")) !== "false",
   applicationId: process.env.APPLICATION_ID || scannedEnvVars.APPLICATION_ID || cfgRpc.applicationId || "367827983903490050"
 };
-const cfgDualAct = loadedConfig?.richPresence?.dualActivity || {};
+const cfgDualAct = (loadedConfig && loadedConfig.richPresence && loadedConfig.richPresence.dualActivity) || {};
 const DUAL_ACTIVITY_CONFIG = {
   enabled: (process.env.DUAL_ACTIVITY_ENABLED || scannedEnvVars.DUAL_ACTIVITY_ENABLED || (cfgDualAct.enabled !== void 0 ? String(cfgDualAct.enabled) : "true")) !== "false",
   name: process.env.DUAL_ACTIVITY_NAME || scannedEnvVars.DUAL_ACTIVITY_NAME || cfgDualAct.name || "Minecraft",
@@ -526,10 +523,10 @@ const LOL_CONFIG = {
   partyMax: parseInt(process.env.LOL_PARTY_MAX || scannedEnvVars.LOL_PARTY_MAX || cfgLol.partyMax || "5", 10),
   autoCycleSimulation: (process.env.LOL_AUTO_CYCLE || scannedEnvVars.LOL_AUTO_CYCLE || String(cfgLol.autoCycleSimulation || "false")) === "true"
 };
-const cfgCpu = loadedConfig?.cpuGovernor || loadedConfig?.mediaEngine?.cpuGovernor || {};
+const cfgCpu = (loadedConfig && loadedConfig.cpuGovernor) || (loadedConfig && loadedConfig.mediaEngine && loadedConfig.mediaEngine.cpuGovernor) || {};
 const parsedTargetCpu = parseFloat(process.env.CPU_TARGET_POWER || scannedEnvVars.CPU_TARGET_POWER || cfgCpu.targetUtilization || cfgCpu.targetPowerPercent || "195");
 const TARGET_CPU_POWER = isNaN(parsedTargetCpu) ? 195 : Math.max(0, Math.min(195, parsedTargetCpu));
-const CPU_CORES = Math.max(1, os.cpus()?.length || 1);
+const CPU_CORES = Math.max(1, (os.cpus() && os.cpus().length) || 1);
 const FFMPEG_THREADS = process.env.FFMPEG_THREADS !== void 0 && process.env.FFMPEG_THREADS.trim() !== "" ? parseInt(process.env.FFMPEG_THREADS, 10) : TARGET_CPU_POWER >= 150 ? CPU_CORES === 1 ? 2 : Math.min(4, Math.max(4, CPU_CORES * 2)) : TARGET_CPU_POWER >= 90 ? 3 : TARGET_CPU_POWER >= 40 ? 2 : 1;
 const AUDIO_BITRATE = parseInt(process.env.AUDIO_BITRATE || "192", 10);
 const AUDIO_BOOST = process.env.AUDIO_BOOST || "1.48";
@@ -690,9 +687,9 @@ class RtcpPliAdaptiveController {
   attach(streamerInstance) {
     if (!streamerInstance) return;
     try {
-      const conn = streamerInstance.voiceConnection?.webRtcConn;
-      if (conn) {
-        conn.on?.("pli", () => this.triggerFrameDropping());
+      const conn = (streamerInstance && streamerInstance.voiceConnection && streamerInstance.voiceConnection.webRtcConn);
+      if (conn && typeof conn.on === "function") {
+        conn.on("pli", () => this.triggerFrameDropping());
       }
     } catch (_) {
     }
@@ -724,8 +721,8 @@ function startDaveKeyRatchetSupervisor(streamerInstance) {
     try {
       if (client.isReady() && currentEngineState.voiceConnected) {
         daveEpochCounter++;
-        const voiceConn = streamerInstance?.voiceConnection;
-        if (voiceConn?.daveSession && typeof voiceConn.daveSession.ratchetKey === "function") {
+        const voiceConn = (streamerInstance && streamerInstance.voiceConnection);
+        if (voiceConn && voiceConn.daveSession && typeof voiceConn.daveSession.ratchetKey === "function") {
           voiceConn.daveSession.ratchetKey(daveEpochCounter);
         }
       }
@@ -734,7 +731,7 @@ function startDaveKeyRatchetSupervisor(streamerInstance) {
   }, SIXTY_MINUTES_MS);
 }
 const streamArbiter = new VideoDiscriminationArbiter();
-const rawConfiguredPlaylist = Array.isArray(loadedConfig?.playlist) && loadedConfig.playlist.length > 0 ? loadedConfig.playlist : [
+const rawConfiguredPlaylist = (Array.isArray(loadedConfig && loadedConfig.playlist) && loadedConfig.playlist.length > 0) ? loadedConfig.playlist : [
   {
     id: "gradation",
     title: "KANA-BOON - \u3050\u3089\u3067\u30FC\u3057\u3087\u3093 (Gradation) [Yamada-kun Lv999 OP]",
@@ -878,9 +875,9 @@ app.get("/", (req, res) => {
       protocol: "RFC 9420 Messaging Layer Security (SAVPF)"
     },
     richPresence: {
-      currentTrack: PLAYLIST[currentPlaylistIndex]?.title,
+      currentTrack: (PLAYLIST[currentPlaylistIndex] && PLAYLIST[currentPlaylistIndex].title),
       dynamicTimeline: true,
-      thumbnailAsset: PLAYLIST[currentPlaylistIndex]?.id === "aizo" ? "aizo" : "youtube"
+      thumbnailAsset: (PLAYLIST[currentPlaylistIndex] && PLAYLIST[currentPlaylistIndex].id === "aizo") ? "aizo" : "youtube"
     },
     playlist: PLAYLIST.map((p, idx) => ({
       index: idx,
@@ -985,7 +982,8 @@ function serializeActivityForGateway(act) {
   }
   const typeMap = { PLAYING: 0, STREAMING: 1, LISTENING: 2, WATCHING: 3, CUSTOM: 4, COMPETING: 5 };
   if (typeof raw.type === "string") {
-    raw.type = typeMap[raw.type.toUpperCase()] ?? 0;
+    const mapped = typeMap[raw.type.toUpperCase()];
+    raw.type = mapped !== undefined ? mapped : 0;
   }
   const out = {
     name: String(raw.name || "Activity"),
@@ -1184,7 +1182,7 @@ function updateRichPresence(track) {
     const chosenStatus = validStatuses.includes(RPC_CONFIG.status) ? RPC_CONFIG.status : "online";
     const effectiveStatus = currentEngineState.isHourlyBreakActive ? "idle" : chosenStatus;
     const normalizedGatewayActivities = activitiesList.map(serializeActivityForGateway).filter(Boolean);
-    if (client.ws?.broadcast) {
+    if (client.ws && typeof client.ws.broadcast === "function") {
       try {
         client.ws.broadcast({
           op: 3,
@@ -1210,7 +1208,7 @@ function updateRichPresence(track) {
     }
   } catch (err) {
     try {
-      const fallbackName = RPC_CONFIG.name || currentEngineState.currentTrackTitle || PLAYLIST[0]?.title || "KANA-BOON - \u3050\u3089\u3067\u30FC\u3057\u3087\u3093";
+      const fallbackName = RPC_CONFIG.name || currentEngineState.currentTrackTitle || (PLAYLIST[0] && PLAYLIST[0].title) || "KANA-BOON - \u3050\u3089\u3067\u30FC\u3057\u3087\u3093";
       client.user.setActivity(fallbackName, {
         type: "STREAMING",
         url: RPC_CONFIG.url || YOUTUBE_STREAM_URL
@@ -1230,8 +1228,9 @@ function enforceVoiceMicrophoneState(guildId, channelId, forceGatewayUpdate = fa
     const now = Date.now();
     const shouldSendGateway = forceGatewayUpdate || lastEnforcedVoiceState.guildId !== guildId || lastEnforcedVoiceState.channelId !== channelId || now - lastEnforcedVoiceState.timestamp > 45e3;
     if (shouldSendGateway) {
+      const opcode = (GatewayOpCodes && GatewayOpCodes.VOICE_STATE_UPDATE !== undefined) ? GatewayOpCodes.VOICE_STATE_UPDATE : 4;
       client.ws.broadcast({
-        op: GatewayOpCodes?.VOICE_STATE_UPDATE ?? 4,
+        op: opcode,
         d: {
           guild_id: guildId,
           channel_id: channelId,
@@ -1242,7 +1241,7 @@ function enforceVoiceMicrophoneState(guildId, channelId, forceGatewayUpdate = fa
       });
       lastEnforcedVoiceState = { guildId, channelId, timestamp: now };
     }
-    if (streamer.voiceConnection?.webRtcConn) {
+    if (streamer.voiceConnection && streamer.voiceConnection.webRtcConn) {
       try {
         if (!streamer.voiceConnection.webRtcConn._audioPacketizer && streamer.voiceConnection.webRtcParams) {
           streamer.voiceConnection.webRtcConn.setPacketizer("H264");
@@ -1253,7 +1252,7 @@ function enforceVoiceMicrophoneState(guildId, channelId, forceGatewayUpdate = fa
     if (streamer.voiceConnection) {
       try {
         streamer.voiceConnection.setSpeaking(3);
-        if (streamer.voiceConnection.webRtcConn?.mediaConnection) {
+        if (streamer.voiceConnection.webRtcConn && streamer.voiceConnection.webRtcConn.mediaConnection) {
           streamer.voiceConnection.webRtcConn.mediaConnection.setSpeaking(true);
         }
       } catch (_) {
@@ -1341,12 +1340,12 @@ async function startContinuousStream() {
         ]
       }, broadcastAbortController.signal);
       command.on("error", (err) => {
-        const errStr = String(err?.message || err);
-        if (broadcastAbortController?.signal?.aborted || errStr.includes("SIGKILL") || errStr.includes("SIGTERM") || errStr.includes("code 255") || errStr.includes("Output stream closed") || errStr.includes("Immediate exit requested")) {
+        const errStr = String((err && err.message) || err);
+        if ((broadcastAbortController && broadcastAbortController.signal && broadcastAbortController.signal.aborted) || errStr.includes("SIGKILL") || errStr.includes("SIGTERM") || errStr.includes("code 255") || errStr.includes("Output stream closed") || errStr.includes("Immediate exit requested")) {
           return;
         }
       });
-      if (streamer.voiceConnection?.webRtcConn && !streamer.voiceConnection.webRtcConn._audioPacketizer) {
+      if (streamer.voiceConnection && streamer.voiceConnection.webRtcConn && !streamer.voiceConnection.webRtcConn._audioPacketizer) {
         try {
           streamer.voiceConnection.webRtcConn.setPacketizer("H264");
           streamer.voiceConnection.setSpeaking(3);
@@ -1375,7 +1374,7 @@ async function startContinuousStream() {
             } catch (_) {
             }
           }
-          if (command?.ffmpegProc?.pid) {
+          if (command && command.ffmpegProc && command.ffmpegProc.pid) {
             try {
               process.kill(command.ffmpegProc.pid, "SIGKILL");
             } catch (_) {
@@ -1397,7 +1396,7 @@ async function startContinuousStream() {
         if (output && typeof output.off === "function") {
           output.off("data", onStreamData);
         }
-        if (command?.ffmpegProc?.pid) {
+        if (command && command.ffmpegProc && command.ffmpegProc.pid) {
           try {
             process.kill(command.ffmpegProc.pid, "SIGKILL");
           } catch (_) {
@@ -1432,7 +1431,7 @@ async function startContinuousStream() {
       }
       await new Promise((resolve) => setTimeout(resolve, 800));
     } catch (streamError) {
-      if (broadcastAbortController?.signal?.aborted) {
+      if (broadcastAbortController && broadcastAbortController.signal && broadcastAbortController.signal.aborted) {
         break;
       }
       try {
@@ -1470,13 +1469,13 @@ async function connectToVoiceChannel() {
     if (!channel || !channel.isVoice()) {
       throw new Error(`Voice Channel dengan ID ${VOICE_CHANNEL_ID} tidak ditemukan atau bukan Voice Channel!`);
     }
-    const guildName = channel.guild?.name || "DM Call";
+    const guildName = (channel.guild && channel.guild.name) || "DM Call";
     const channelName = channel.name;
-    const guildId = channel.guild?.id || VOICE_GUILD_ID;
+    const guildId = (channel.guild && channel.guild.id) || VOICE_GUILD_ID;
     currentEngineState.voiceChannelName = channelName;
     currentEngineState.voiceGuildName = guildName;
     await streamer.joinVoice(guildId, channel.id);
-    if (streamer.voiceConnection?.webRtcConn) {
+    if (streamer.voiceConnection && streamer.voiceConnection.webRtcConn) {
       try {
         if (!streamer.voiceConnection.webRtcConn._audioPacketizer && streamer.voiceConnection.webRtcParams) {
           streamer.voiceConnection.webRtcConn.setPacketizer("H264");
@@ -1510,7 +1509,7 @@ function scheduleAutoRejoin(delayMs = 6e3) {
 setInterval(() => {
   if (currentEngineState.voiceConnected) {
     const channel = client.channels.cache.get(VOICE_CHANNEL_ID);
-    const guildId = channel?.guild?.id || VOICE_GUILD_ID;
+    const guildId = (channel && channel.guild && channel.guild.id) || VOICE_GUILD_ID;
     enforceVoiceMicrophoneState(guildId, VOICE_CHANNEL_ID);
   }
 }, 1e4);
@@ -1552,13 +1551,13 @@ client.on("ready", async () => {
   connectToVoiceChannel();
 });
 client.on("voiceStateUpdate", (oldState, newState) => {
-  if (newState.member?.id === client.user.id) {
+  if (newState.member && newState.member.id === client.user.id) {
     if (!newState.channelId && oldState.channelId) {
       currentEngineState.voiceConnected = false;
       stopCurrentBroadcast();
       scheduleAutoRejoin(3e3);
     } else if (newState.channelId) {
-      const guildId = newState.guild?.id || VOICE_GUILD_ID;
+      const guildId = (newState.guild && newState.guild.id) || VOICE_GUILD_ID;
       const isMuted = newState.serverMute || newState.selfMute;
       const isDeafened = newState.serverDeaf || newState.selfDeaf;
       if (isMuted || isDeafened) {
@@ -1575,7 +1574,7 @@ client.on("voiceStateUpdate", (oldState, newState) => {
 client.on("raw", (packet) => {
   if (packet.t === "VOICE_SERVER_UPDATE" && currentEngineState.voiceConnected) {
     const channel = client.channels.cache.get(VOICE_CHANNEL_ID);
-    const guildId = channel?.guild?.id || VOICE_GUILD_ID;
+    const guildId = (channel && channel.guild && channel.guild.id) || VOICE_GUILD_ID;
     setTimeout(() => {
       enforceVoiceMicrophoneState(guildId, VOICE_CHANNEL_ID, true);
     }, 1e3);
@@ -1590,17 +1589,18 @@ process.on("warning", (warning) => {
   }
 });
 process.on("unhandledRejection", (reason) => {
-  const msg = String(reason?.message || reason);
+  const msg = String((reason && reason.message) || reason);
   if (msg.includes("AbortError") || msg.includes("Destroyed") || msg.includes("SIGKILL") || msg.includes("SIGTERM") || msg.includes("WebSocket was closed") || msg.includes("ECONNRESET") || msg.includes("UND_ERR")) {
     return;
   }
 });
 process.on("uncaughtException", (err) => {
-  const msg = String(err?.message || err);
+  const msg = String((err && err.message) || err);
   if (msg.includes("ECONNRESET") || msg.includes("WebSocket") || msg.includes("AbortError")) {
     return;
   }
 });
 client.login(DISCORD_TOKEN).catch((err) => {
-  process.exit(1);
+  console.error("\x1b[31m[FADHILBOT PM2 / VPS FATAL]\x1b[0m Gagal login ke Discord:", err && err.message ? err.message : err);
+  setTimeout(() => process.exit(1), 4000);
 });

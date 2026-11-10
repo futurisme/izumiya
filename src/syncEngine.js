@@ -474,7 +474,6 @@ DNS_PROFILE=${state.dnsProfile}
     version: "2026.10.11",
     description: "Discord 24/7 Audio-Priority & 480p Adaptive Stream Engine (DAVE v2 E2EE, Malang Peering Optimized)",
     main: "index.js",
-    type: "module",
     scripts: {
       start: "node index.js",
       selfbot: "node index.js",
@@ -595,8 +594,7 @@ module.exports = {
       kill_timeout: 5000,
       listen_timeout: 8000,
       node_args: [
-        "--no-warnings",
-        "--experimental-vm-modules"
+        "--no-warnings"
       ],
       env: {
         NODE_ENV: "production",

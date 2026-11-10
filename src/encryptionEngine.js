@@ -83,7 +83,7 @@ export function encryptSourceCode(sourceCode, seedKey = "AETHER_OMNI_2026_PROPRI
   // We preserve complete logic and comments, while bridging ESM top-level import boilerplate
   // so the in-memory loader can bind native require, __filename, and __dirname directly in RAM.
   let normalizedCode = sourceCode.replace(
-    /import\s*\{\s*createRequire\s*\}\s*from\s*["']node:module["'];?\s*import\s*\{\s*fileURLToPath\s*\}\s*from\s*["']node:url["'];?\s*import\s*\{\s*dirname\s*\}\s*from\s*["']node:path["'];?[\s\S]*?const\s+__dirname\s*=\s*dirname\(__filename\);?/m,
+    /import\s*\{\s*createRequire\s*\}\s*from\s*["'](?:node:)?module["'];?[\s\S]*?const\s+__dirname\s*=\s*dirname\(__filename\);?/m,
     `/* [AETHER-OMNI™ HYDRATED MEMORY CONTEXT 2026] */`
   );
 
@@ -175,20 +175,16 @@ export function buildProtectedLoaderScript(encryptedBase64, checksum, seedKey = 
  * Manual reverse-engineering, decompilation, dynamic dumping, or automated scanner parsing
  * will fail to extract underlying intellectual property.
  * 
- * Target Environment : Linux VPS Ubuntu 22.04 LTS / Node.js 18-24 LTS / PM2 / Wispbyte / Pterodactyl
+ * Target Environment : Linux VPS Ubuntu 18-24 / Node.js 12-24 LTS / PM2 / Wispbyte / Pterodactyl
  * Integrity Stamp    : ${checksum}
  * Build Epoch        : 2026-11-09
  */
 
-import { createRequire as _0xreq } from "node:module";
-import { fileURLToPath as _0xfup } from "node:url";
-import { dirname as _0xdir } from "node:path";
-import _0xvm from "node:vm";
+const _0xvm = require("vm");
+const _0xfs = require("fs");
+const _0xpath = require("path");
 
 globalThis.Bun = { version: "1.2.4" };
-const require = _0xreq(import.meta.url);
-const __filename = _0xfup(import.meta.url);
-const __dirname = _0xdir(__filename);
 
 // PM2 Daemon Working Directory Anchor
 try {

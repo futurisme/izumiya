@@ -27,8 +27,7 @@ module.exports = {
       kill_timeout: 5000,
       listen_timeout: 8000,
       node_args: [
-        "--no-warnings",
-        "--experimental-vm-modules"
+        "--no-warnings"
       ],
       env: {
         NODE_ENV: "production",

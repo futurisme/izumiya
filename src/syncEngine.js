@@ -179,7 +179,7 @@ export function generateSynchronizedFiles(state) {
     }
   ];
   const playlistArrayJson = JSON.stringify(playlistItems, null, 2);
-  const rawPlaylistReplacement = `const rawConfiguredPlaylist = (Array.isArray(loadedConfig?.playlist) && loadedConfig.playlist.length > 0)
+  const rawPlaylistReplacement = `const rawConfiguredPlaylist = (Array.isArray(loadedConfig && loadedConfig.playlist) && loadedConfig.playlist.length > 0)
   ? loadedConfig.playlist
   : ${playlistArrayJson};
 
@@ -481,6 +481,7 @@ DNS_PROFILE=${state.dnsProfile}
       "pm2:stop": "pm2 stop fadhilbot",
       "pm2:restart": "pm2 restart fadhilbot",
       "pm2:logs": "pm2 logs fadhilbot",
+      fix: "rm -rf node_modules package-lock.json && npm cache clean --force && npm install",
       postinstall: "node scripts/postinstall.cjs"
     },
     dependencies: {

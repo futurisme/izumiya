@@ -247,6 +247,7 @@ const selfbotCandidates = [
   "discord.js-selfbot-v13",
   "discord.js"
 ];
+const candidateErrors = [];
 for (const pkg of selfbotCandidates) {
   try {
     const mod = require(pkg);
@@ -254,32 +255,26 @@ for (const pkg of selfbotCandidates) {
       DiscordSelfbot = mod;
       break;
     }
-  } catch (_) {
-  }
-}
-if (!DiscordSelfbot || (!DiscordSelfbot.Client && !(DiscordSelfbot.default && DiscordSelfbot.default.Client))) {
-  try {
-    const { execSync: execSync2 } = require("child_process");
-    execSync2("npm install --no-audit --no-fund @lng2004/discord.js-selfbot-v13@3.7.2 discord.js-selfbot-v13@3.7.1 @dank074/discord-video-stream@7.0.0 @snazzah/davey@0.1.12", {
-      stdio: "inherit"
-    });
-    for (const pkg of selfbotCandidates) {
-      try {
-        const mod = require(pkg);
-        if (mod && (mod.Client || (mod.default && mod.default.Client))) {
-          DiscordSelfbot = mod;
-          break;
-        }
-      } catch (_) {
+  } catch (err) {
+    try {
+      const altPath = path.resolve(__dirname, "node_modules", pkg);
+      const mod = require(altPath);
+      if (mod && (mod.Client || (mod.default && mod.default.Client))) {
+        DiscordSelfbot = mod;
+        break;
       }
-    }
-  } catch (healErr) {
+    } catch (_) {}
+    candidateErrors.push({ pkg, err: (err && err.message) || String(err) });
   }
 }
 if (!DiscordSelfbot || (!DiscordSelfbot.Client && !(DiscordSelfbot.default && DiscordSelfbot.default.Client))) {
-  console.error("\x1b[31m[FADHILBOT PM2 / VPS FATAL]\x1b[0m Modul Discord Selfbot (@lng2004/discord.js-selfbot-v13) tidak dapat dimuat.");
-  console.error("\x1b[33m[PETUNJUK VPS / PM2]\x1b[0m Pastikan telah menjalankan 'npm install' di direktori bot sebelum menjalankan PM2.");
-  process.exit(1);
+  console.error("\x1b[31m[FADHILBOT PM2 / VPS FATAL]\x1b[0m Modul Discord Selfbot tidak dapat dimuat.");
+  for (const ce of candidateErrors) {
+    console.error(`\x1b[33m- [${ce.pkg}]\x1b[0m ${ce.err}`);
+  }
+  console.error("\x1b[36m[SOLUSI REPARASI VPS]\x1b[0m Jalankan perintah berikut di VPS:");
+  console.error("\x1b[32m  pm2 stop fadhilbot && npm run fix && pm2 restart fadhilbot\x1b[0m");
+  setTimeout(() => process.exit(1), 6000);
 }
 const Client = DiscordSelfbot.Client || (DiscordSelfbot.default && DiscordSelfbot.default.Client);
 const RawRichPresence = DiscordSelfbot.RichPresence || (DiscordSelfbot.default && DiscordSelfbot.default.RichPresence);

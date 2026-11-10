@@ -95,7 +95,7 @@ test("League of Legends In Queue phase payload generation", () => {
   assert.equal(payload.largeImage, "league_icon");
   assert.equal(payload.smallImage, "rank_master");
   assert.equal(payload.smallText, "Master - 240 LP");
-  assert.deepEqual(payload.party?.size, [1, 5]);
+  assert.deepEqual(payload.party && payload.party.size, [1, 5]);
 });
 test("League of Legends In Champion Select phase payload generation", () => {
   const payload = formatLolPresencePayload({
@@ -133,7 +133,7 @@ test("League of Legends In Game match live metrics payload generation", () => {
   assert.equal(payload.largeText, "Yasuo - 210 CS");
   assert.equal(payload.smallImage, "rank_diamond");
   assert.equal(payload.smallText, "Diamond - 75 LP");
-  assert.deepEqual(payload.party?.size, [2, 5]);
+  assert.deepEqual(payload.party && payload.party.size, [2, 5]);
 });
 test("League of Legends Auto-Cycle Simulation phase evolution", () => {
   const bootTime = 1e9;

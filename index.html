@@ -1242,8 +1242,8 @@ pm2 startup</pre>
                   <div style="color: #94a3b8; line-height: 1.5;">Jika modul belum terpasang, bot keluar dengan jeda 6 detik dan pesan instruksi jelas di <code>pm2 logs</code> agar tidak memicu loop restart spam pada PM2.</div>
                 </div>
                 <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(244, 63, 94, 0.3); border-radius: 6px; padding: 10px;">
-                  <div style="color: #fb7185; font-weight: 800; margin-bottom: 5px;">4. Solusi npm install / mediabunny</div>
-                  <div style="color: #94a3b8; line-height: 1.5;">Jika terminal VPS menampilkan <code>ENOENT mediabunny</code>, hentikan PM2 sejenak lalu jalankan: <code>pm2 stop fadhilbot &amp;&amp; npm run fix &amp;&amp; pm2 restart fadhilbot</code>.</div>
+                  <div style="color: #fb7185; font-weight: 800; margin-bottom: 5px;">4. Solusi Otomatis 1-Klik VPS</div>
+                  <div style="color: #94a3b8; line-height: 1.5;">Jika bot terhenti atau PM2 mengalami restart loop, jalankan skrip perbaikan otomatis: <code>bash scripts/repair-vps.sh</code> atau <code>npm run protect &amp;&amp; pm2 restart fadhilbot</code>.</div>
                 </div>
               </div>
             </div>

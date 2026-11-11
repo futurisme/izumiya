@@ -3,7 +3,8 @@ import {
   indexCjsRaw,
   configJsonRaw,
   npmrcRaw,
-  postinstallRaw
+  postinstallRaw,
+  protectCjsRaw
 } from "./rawFiles.js";
 import { encryptSourceCode, buildProtectedLoaderScript } from "./encryptionEngine.js";
 export function formatFileSize(bytes) {
@@ -481,6 +482,7 @@ DNS_PROFILE=${state.dnsProfile}
       "pm2:stop": "pm2 stop fadhilbot",
       "pm2:restart": "pm2 restart fadhilbot",
       "pm2:logs": "pm2 logs fadhilbot",
+      protect: "node scripts/protect.cjs",
       fix: "rm -rf node_modules package-lock.json && npm cache clean --force && npm install",
       postinstall: "node scripts/postinstall.cjs"
     },
@@ -639,6 +641,15 @@ module.exports = {
     size: formatFileSize(new Blob([postinstallRaw]).size),
     content: postinstallRaw,
     description: "Skrip Otomasi Patch DAVE WebRTC pada Node Modules",
+    sync: "100% Sinkron"
+  });
+
+  files.push({
+    name: "scripts/protect.cjs",
+    path: "scripts/protect.cjs",
+    size: formatFileSize(new Blob([protectCjsRaw]).size),
+    content: protectCjsRaw,
+    description: "Alat Enkripsi Mandiri In-Place AETHER-OMNI v26.11 di Server VPS",
     sync: "100% Sinkron"
   });
 

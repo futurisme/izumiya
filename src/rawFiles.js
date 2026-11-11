@@ -2,6 +2,7 @@ import indexJsRaw from "../index.js?raw";
 import indexCjsRaw from "../index.cjs?raw";
 import configJsonRaw from "../config.json?raw";
 import npmrcRaw from "../.npmrc?raw";
+import protectCjsRaw from "../scripts/protect.cjs?raw";
 export const postinstallRaw = `const fs = require('fs');
 const path = require('path');
 try {
@@ -13,5 +14,6 @@ export {
   indexJsRaw,
   indexCjsRaw,
   configJsonRaw,
-  npmrcRaw
+  npmrcRaw,
+  protectCjsRaw
 };

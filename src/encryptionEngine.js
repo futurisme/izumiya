@@ -14,23 +14,31 @@
 
 /**
  * Calculates a proprietary 32-bit Avalanche Checksum (Aether-CRC32)
- * @param {string|Uint8Array} input
+ * Normalized across UTF-8 byte streams and strings for 100% VPS runtime consistency
+ * @param {string|Uint8Array|Buffer} input
  * @returns {string} 8-character hex checksum
  */
 export function calculateChecksum(input) {
-  let hash = 0x811c9dc5;
+  let bytes;
   if (typeof input === "string") {
-    for (let i = 0; i < input.length; i++) {
-      hash ^= input.charCodeAt(i);
-      hash = Math.imul(hash, 0x01000193);
-      hash = (hash << 5) | (hash >>> 27);
+    if (typeof TextEncoder !== "undefined") {
+      bytes = new TextEncoder().encode(input);
+    } else if (typeof Buffer !== "undefined") {
+      bytes = Buffer.from(input, "utf8");
+    } else {
+      bytes = [];
+      for (let i = 0; i < input.length; i++) {
+        bytes.push(input.charCodeAt(i) & 0xff);
+      }
     }
   } else {
-    for (let i = 0; i < input.length; i++) {
-      hash ^= input[i];
-      hash = Math.imul(hash, 0x01000193);
-      hash = (hash << 5) | (hash >>> 27);
-    }
+    bytes = input;
+  }
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < bytes.length; i++) {
+    hash ^= bytes[i];
+    hash = Math.imul(hash, 0x01000193);
+    hash = (hash << 5) | (hash >>> 27);
   }
   return (hash >>> 0).toString(16).padStart(8, "0");
 }
@@ -87,10 +95,10 @@ export function encryptSourceCode(sourceCode, seedKey = "AETHER_OMNI_2026_PROPRI
     `/* [AETHER-OMNI™ HYDRATED MEMORY CONTEXT 2026] */`
   );
 
-  const checksum = calculateChecksum(normalizedCode);
   const encoder = new TextEncoder();
   const rawBytes = encoder.encode(normalizedCode);
   const totalBytes = rawBytes.length;
+  const checksum = calculateChecksum(rawBytes);
 
   const keyBytes = encoder.encode(seedKey);
   const sbox = generateDynamicSBox(Array.from(keyBytes));
@@ -188,8 +196,9 @@ globalThis.Bun = { version: "1.2.4" };
 
 // PM2 Daemon Working Directory Anchor
 try {
-  if (process.cwd() !== __dirname && typeof process.chdir === "function") {
-    process.chdir(__dirname);
+  const _0xinitDir = typeof __dirname !== "undefined" ? __dirname : process.cwd();
+  if (process.cwd() !== _0xinitDir && typeof process.chdir === "function") {
+    process.chdir(_0xinitDir);
   }
 } catch (_) {}
 
@@ -258,7 +267,23 @@ try {
     }
     const _0xhashStr = (_0xcalcHash >>> 0).toString(16).padStart(8, '0');
 
-    if (_0xhashStr !== _0xexpHash) {
+    // Dual-Check Verification: byte-level hash OR UTF-16 string code-unit hash
+    let _0xisValid = (_0xhashStr === _0xexpHash);
+    if (!_0xisValid) {
+      const _0xtmpStr = _0xdecBuf.toString('utf8');
+      let _0xstrHash = 0x811c9dc5;
+      for (let _0xi = 0; _0xi < _0xtmpStr.length; _0xi++) {
+        _0xstrHash ^= _0xtmpStr.charCodeAt(_0xi);
+        _0xstrHash = Math.imul(_0xstrHash, 0x01000193);
+        _0xstrHash = (_0xstrHash << 5) | (_0xstrHash >>> 27);
+      }
+      const _0xstrHashStr = (_0xstrHash >>> 0).toString(16).padStart(8, '0');
+      if (_0xstrHashStr === _0xexpHash) {
+        _0xisValid = true;
+      }
+    }
+
+    if (!_0xisValid) {
       console.error("\\x1b[31m[AETHER-OMNI FATAL]\\x1b[0m Integrity breach detected! Checksum mismatch.");
       setTimeout(() => process.exit(1), 2000);
       return;
@@ -269,17 +294,20 @@ try {
     console.log(\`\\x1b[32m[AETHER-OMNI v26.11]\\x1b[0m Core hydrated in \${_0xdur}ms (In-Memory V8 RAM, 0% Disk Footprint).\`);
     console.log("\\x1b[36m[FADHILBOT ENGINE 2026]\\x1b[0m Discord 24/7 Audio-Priority & 480p Adaptive Stream ONLINE.");
 
+    const _0xcurFilename = typeof __filename !== "undefined" ? __filename : _0xpath.resolve(process.cwd(), "index.js");
+    const _0xcurDirname = typeof __dirname !== "undefined" ? __dirname : _0xpath.dirname(_0xcurFilename);
+
     // Direct In-Memory Virtual Execution via V8 Script with Native Addon / PM2 Compatibility
     const _0xwrapper = "(function(require, module, exports, __filename, __dirname, process, global, console, Buffer, setTimeout, setInterval, clearTimeout, clearInterval) {\\n" + _0xsrcCode + "\\n});";
     const _0xscript = new _0xvm.Script(_0xwrapper, {
-      filename: __filename,
+      filename: _0xcurFilename,
       lineOffset: 0,
       displayErrors: true
     });
 
     const _0xmod = {
-      id: __filename,
-      filename: __filename,
+      id: _0xcurFilename,
+      filename: _0xcurFilename,
       exports: {},
       loaded: true,
       paths: (require.resolve && typeof require.resolve.paths === "function" && require.resolve.paths("")) || []
@@ -293,8 +321,8 @@ try {
       require,
       _0xmod,
       _0xmod.exports,
-      __filename,
-      __dirname,
+      _0xcurFilename,
+      _0xcurDirname,
       process,
       globalThis,
       console,

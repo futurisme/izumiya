@@ -257,4 +257,30 @@ test("AETHER-OMNI v26.11 In-Memory VM Loader Generation and Self-Obfuscation", (
   assert.ok(loader.includes("_0xvm"), "V8 VM virtual hydration present");
 });
 
+test("AETHER-OMNI v26.11 Full In-Memory Execution and Unicode Checksum Integrity", () => {
+  const unicodeSource = `
+    // 弐 FADHILBOT 2026 E2EE 🛡️ ⚡
+    globalThis.__test_aether_val = "HYDRATED_SUCCESS_弐_2026";
+  `;
+  const enc = encryptSourceCode(unicodeSource);
+  assert.ok(enc.checksum && enc.checksum.length === 8, "Checksum must be 8 hex chars");
+
+  const loaderScript = buildProtectedLoaderScript(enc.payload, enc.checksum);
+  
+  const { createRequire } = require("node:module");
+  const cjsRequire = createRequire(import.meta.url);
+  (globalThis as any).require = cjsRequire;
+
+  const vm = cjsRequire("vm");
+  const script = new vm.Script(loaderScript);
+  assert.doesNotThrow(() => {
+    script.runInThisContext();
+  }, "Loader script must execute and hydrate without checksum or syntax errors");
+
+  assert.equal((globalThis as any).__test_aether_val, "HYDRATED_SUCCESS_弐_2026");
+  delete (globalThis as any).__test_aether_val;
+  delete (globalThis as any).require;
+});
+
+
 

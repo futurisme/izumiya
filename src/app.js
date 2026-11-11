@@ -99,7 +99,8 @@ const state = {
   lolPartyCurrent: 1,
   lolPartyMax: 5,
   lolAutoCycle: true,
-  encryptSourceCode: true
+  encryptSourceCode: true,
+  isMobileView: false
 };
 let currentFiles = [];
 function escapeHtml(str) {
@@ -111,7 +112,93 @@ function formatTime(seconds) {
   const s = Math.floor(seconds % 60);
   return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
 }
+
+export function setMobileViewMode(isMobile, isUserAction = false) {
+  state.isMobileView = isMobile;
+  document.body.classList.toggle("is-mobile-view", isMobile);
+  document.documentElement.classList.toggle("is-mobile-view", isMobile);
+
+  const toggleBtnIcon = document.getElementById("btnToggleMobileModeIcon");
+  const toggleBtnText = document.getElementById("btnToggleMobileModeText");
+  if (toggleBtnIcon && toggleBtnText) {
+    if (isMobile) {
+      toggleBtnIcon.textContent = "💻";
+      toggleBtnText.textContent = "Desktop";
+    } else {
+      toggleBtnIcon.textContent = "📱";
+      toggleBtnText.textContent = "/mobile";
+    }
+  }
+
+  if (isUserAction) {
+    try {
+      localStorage.setItem("fadhilbot_view_preference", isMobile ? "mobile" : "desktop");
+    } catch (_) {}
+  }
+
+  // Update URL to /mobile or / cleanly
+  try {
+    const currentPath = window.location.pathname;
+    if (isMobile) {
+      if (!currentPath.startsWith("/mobile")) {
+        window.history.replaceState({ mode: "mobile" }, "", "/mobile");
+      }
+    } else {
+      if (currentPath.startsWith("/mobile")) {
+        window.history.replaceState({ mode: "desktop" }, "", "/");
+      }
+    }
+  } catch (_) {}
+}
+
+export function initMobileRouting() {
+  const path = window.location.pathname;
+  const hash = window.location.hash;
+  const isMobilePath = path.startsWith("/mobile") || hash === "#mobile";
+  let userPref = null;
+  try {
+    userPref = localStorage.getItem("fadhilbot_view_preference");
+  } catch (_) {}
+
+  const isMobileDevice = window.innerWidth <= 960 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+  let initialMobile = false;
+  if (isMobilePath) {
+    initialMobile = true;
+  } else if (userPref === "mobile") {
+    initialMobile = true;
+  } else if (userPref === "desktop") {
+    initialMobile = false;
+  } else {
+    initialMobile = isMobileDevice;
+  }
+
+  setMobileViewMode(initialMobile, false);
+
+  window.addEventListener("popstate", () => {
+    const p = window.location.pathname;
+    const h = window.location.hash;
+    setMobileViewMode(p.startsWith("/mobile") || h === "#mobile", false);
+  });
+
+  let resizeTimeout = null;
+  window.addEventListener("resize", () => {
+    if (resizeTimeout) clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+      let pref = null;
+      try {
+        pref = localStorage.getItem("fadhilbot_view_preference");
+      } catch (_) {}
+      if (!pref) {
+        const screenIsMobile = window.innerWidth <= 960;
+        setMobileViewMode(screenIsMobile, false);
+      }
+    }, 200);
+  });
+}
+
 export function initApp() {
+  initMobileRouting();
   bindDOMEvents();
   renderPlaylistDOM();
   startTimebarSimulation();
@@ -125,6 +212,10 @@ function refreshStateAndUI() {
   updateRpcUI();
   updateMalangUI();
   updateExportUI();
+  const mobBtnModeText = document.getElementById("mobBtnModeText");
+  if (mobBtnModeText) {
+    mobBtnModeText.textContent = state.botMode === "selfbot" ? "Akun User" : "Bot Resmi";
+  }
   scheduleZipSizeUpdate(currentFiles);
 }
 function bindDOMEvents() {
@@ -150,6 +241,49 @@ function bindDOMEvents() {
       refreshStateAndUI();
     });
   }
+  const btnToggleMobileMode = document.getElementById("btnToggleMobileMode");
+  if (btnToggleMobileMode) {
+    btnToggleMobileMode.addEventListener("click", () => {
+      setMobileViewMode(!state.isMobileView, true);
+    });
+  }
+
+  const mobBtnDownloadZip = document.getElementById("mobBtnDownloadZip");
+  const mobBtnCopyEnv = document.getElementById("mobBtnCopyEnv");
+  const mobBtnToggleMode = document.getElementById("mobBtnToggleMode");
+
+  if (mobBtnCopyEnv) {
+    mobBtnCopyEnv.addEventListener("click", () => {
+      const envFile = currentFiles.find((f) => f.name === ".env");
+      if (envFile && navigator.clipboard) {
+        navigator.clipboard.writeText(envFile.content).then(() => {
+          mobBtnCopyEnv.innerHTML = "<span>✓</span><span>Tersalin!</span>";
+          setTimeout(() => {
+            mobBtnCopyEnv.innerHTML = "<span>📋</span><span>.env</span>";
+          }, 2000);
+        });
+      }
+    });
+  }
+
+  if (mobBtnToggleMode) {
+    mobBtnToggleMode.addEventListener("click", () => {
+      state.botMode = state.botMode === "selfbot" ? "official" : "selfbot";
+      const btnModeSelf = document.getElementById("btnModeSelf");
+      const btnModeBot = document.getElementById("btnModeBot");
+      if (btnModeSelf && btnModeBot) {
+        if (state.botMode === "selfbot") {
+          btnModeSelf.classList.add("active-self");
+          btnModeBot.classList.remove("active-bot");
+        } else {
+          btnModeBot.classList.add("active-bot");
+          btnModeSelf.classList.remove("active-self");
+        }
+      }
+      refreshStateAndUI();
+    });
+  }
+
   const btnDownloadZip = document.getElementById("btnDownloadZip");
   const btnDownloadZipExport = document.getElementById("btnDownloadZipExport");
   const triggerZipDownload = async () => {
@@ -163,8 +297,10 @@ function bindDOMEvents() {
       await exportFilesAsZip(currentFiles, filename);
       const btn1Text = document.getElementById("btnDownloadZipText");
       const btn2Text = document.getElementById("btnDownloadZipExportText");
+      const btnMobText = document.getElementById("mobBtnDownloadZipText");
       if (btn1Text) btn1Text.textContent = `✓ Terunduh (${state.lastCalculatedZipSize || "25 KB"})!`;
       if (btn2Text) btn2Text.textContent = `✓ Terunduh (${state.lastCalculatedZipSize || "25 KB"})!`;
+      if (btnMobText) btnMobText.textContent = `✓ Terunduh!`;
       setTimeout(() => {
         updateZipButtonsState(false);
       }, 2500);
@@ -172,8 +308,10 @@ function bindDOMEvents() {
       console.error("[ZIP Export Error]:", err);
       const btn1Text = document.getElementById("btnDownloadZipText");
       const btn2Text = document.getElementById("btnDownloadZipExportText");
+      const btnMobText = document.getElementById("mobBtnDownloadZipText");
       if (btn1Text) btn1Text.textContent = "⚠️ Gagal Unduh";
       if (btn2Text) btn2Text.textContent = "⚠️ Gagal Unduh";
+      if (btnMobText) btnMobText.textContent = "⚠️ Gagal Unduh";
       setTimeout(() => {
         updateZipButtonsState(false);
       }, 3000);
@@ -183,6 +321,7 @@ function bindDOMEvents() {
   };
   if (btnDownloadZip) btnDownloadZip.addEventListener("click", triggerZipDownload);
   if (btnDownloadZipExport) btnDownloadZipExport.addEventListener("click", triggerZipDownload);
+  if (mobBtnDownloadZip) mobBtnDownloadZip.addEventListener("click", triggerZipDownload);
 
   const btnModeEncryptOn = document.getElementById("btnModeEncryptOn");
   const btnModeEncryptOff = document.getElementById("btnModeEncryptOff");
@@ -1577,10 +1716,12 @@ export async function scheduleZipSizeUpdate(files) {
       state.lastCalculatedZipSize = sizeStr;
       const btn1Text = document.getElementById("btnDownloadZipText");
       const btn2Text = document.getElementById("btnDownloadZipExportText");
+      const btnMobText = document.getElementById("mobBtnDownloadZipText");
       const valSize = document.getElementById("valZipCalculatedSize");
       const valCount = document.getElementById("valZipFileCount");
       if (btn1Text) btn1Text.textContent = `Unduh ZIP (${sizeStr})`;
       if (btn2Text) btn2Text.textContent = `Unduh ZIP (${sizeStr})`;
+      if (btnMobText) btnMobText.textContent = `Unduh ZIP (${sizeStr})`;
       if (valSize) valSize.textContent = `${sizeStr} (Terkemas Level 9)`;
       if (valCount) valCount.textContent = `${files.length} Berkas`;
     } catch (err) {
@@ -1590,16 +1731,21 @@ export async function scheduleZipSizeUpdate(files) {
 function updateZipButtonsState(isPackaging) {
   const btn1 = document.getElementById("btnDownloadZip");
   const btn2 = document.getElementById("btnDownloadZipExport");
+  const btnMob = document.getElementById("mobBtnDownloadZip");
   const btn1Text = document.getElementById("btnDownloadZipText");
   const btn2Text = document.getElementById("btnDownloadZipExportText");
+  const btnMobText = document.getElementById("mobBtnDownloadZipText");
   if (btn1) btn1.disabled = isPackaging;
   if (btn2) btn2.disabled = isPackaging;
+  if (btnMob) btnMob.disabled = isPackaging;
   if (isPackaging) {
     if (btn1Text) btn1Text.textContent = "Mengemas ZIP...";
     if (btn2Text) btn2Text.textContent = "Mengemas ZIP...";
+    if (btnMobText) btnMobText.textContent = "Mengemas...";
   } else {
     const text = `Unduh ZIP (${state.lastCalculatedZipSize || "24.8 KB"})`;
     if (btn1Text) btn1Text.textContent = text;
     if (btn2Text) btn2Text.textContent = text;
+    if (btnMobText) btnMobText.textContent = text;
   }
 }
